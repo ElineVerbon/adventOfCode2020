@@ -16,6 +16,7 @@ public class SolutionDay2 {
 	int startRangeRule;
 	int endRangeRule;
 	int validPasswords = 0;
+	int validPasswordsSecondInterpretation = 0;
 	
 	public static void main(String[] args) {
 		SolutionDay2 solution = new SolutionDay2();
@@ -31,8 +32,12 @@ public class SolutionDay2 {
 			if (checkValidityFirstInterpretation()) {
 				validPasswords += 1;
 			}
+			if (checkValiditySecondInterpretation()) {
+				validPasswordsSecondInterpretation += 1;
+			}
 		}
 		System.out.println("Number correct first interpretation: " + validPasswords);
+		System.out.println("Number correct second interpretation: " + validPasswordsSecondInterpretation);
 	}
 	
 	/** Converts to input to a list of integers */
@@ -63,5 +68,13 @@ public class SolutionDay2 {
 	private boolean checkValidityFirstInterpretation() {
 		long count = password.chars().filter(ch -> ch == letterOfRule).count();
 		return (count >= startRangeRule && count <= endRangeRule);
+	}
+	
+	/** Check validity of a password according to second interpretation*/
+	private boolean checkValiditySecondInterpretation() {
+		char firstPosition = password.charAt(startRangeRule - 1);
+		char secondPosition = password.charAt(endRangeRule - 1);
+		return ((firstPosition == letterOfRule && secondPosition != letterOfRule) ||
+				(firstPosition != letterOfRule && secondPosition == letterOfRule));
 	}
 }
