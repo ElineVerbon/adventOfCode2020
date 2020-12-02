@@ -54,6 +54,7 @@ public final class Solution {
 	}
 	
 	/** loop through input twice and find two number that add up to 2020. */
+	//This method keeps searching after having found a solution, an iterator would therefore be more efficient.
 	private void findTwoNumbers() {
 		IntStream.range(0, input.size()).forEach(n -> {
 			IntStream.range(0, input.size()).forEach(x -> {
@@ -70,6 +71,7 @@ public final class Solution {
 	}
 	
 	/** loop through input and find three numbers that add up to 2020. */
+	//This method keeps searching after having found a solution, an iterator would therefore be more efficient.
 	private void findThreeNumbers() {
 		IntStream.range(0, input.size()).forEach(x -> {
 			IntStream.range(0, input.size()).forEach(y -> {
