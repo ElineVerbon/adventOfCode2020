@@ -74,7 +74,6 @@ public class SolutionDay2 {
 	private boolean checkValiditySecondInterpretation() {
 		char firstPosition = password.charAt(startRangeRule - 1);
 		char secondPosition = password.charAt(endRangeRule - 1);
-		return ((firstPosition == letterOfRule && secondPosition != letterOfRule) ||
-				(firstPosition != letterOfRule && secondPosition == letterOfRule));
+		return firstPosition == letterOfRule ^ secondPosition == letterOfRule;
 	}
 }
