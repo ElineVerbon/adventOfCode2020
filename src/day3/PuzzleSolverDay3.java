@@ -8,9 +8,6 @@ import java.util.stream.IntStream;
 public class PuzzleSolverDay3 {
 	int rowLength;
 	int nrRows = 0;
-	int rowsSeen;
-	int stepsSideways = 3;
-	int stepsDown = 1;
 	String landscape;
 	int positionInLandscape = 0;
 	char tree = '#';
@@ -25,12 +22,19 @@ public class PuzzleSolverDay3 {
 	/** Solves the puzzle */
 	private void solvePuzzle() {
 		parseInput();
-    	System.out.println("row length: " + rowLength);
-    	System.out.println("landscape length: " + landscape.length());
-    	System.out.println("nr rows: " + nrRows);
-		countTrees();
+		final int solution1 = countTrees(1, 1);
+		System.out.println("solution 1: " + solution1);
+		final int solution2 = countTrees(3, 1);
+		System.out.println(solution2);
+		final int solution3 = countTrees(5, 1);
+		System.out.println(solution3);
+		final int solution4 = countTrees(7, 1);
+		System.out.println(solution4);
+		final int solution5 = countTrees(1, 2);
+		System.out.println(solution5);
 		
-		System.out.println("Number of trees when going 3 right, 1 down: " + nrTrees);
+		System.out.println("Number of trees when going 3 right, 1 down: " + solution2);
+		System.out.println("Number of trees problem 2: " + (solution1 * solution2 * solution3 * solution4 * solution5));
 	}
 	
 	/** Parses input */
@@ -53,11 +57,11 @@ public class PuzzleSolverDay3 {
 	}
 	
 	/** Counts the trees */
-	private void countTrees() {
+	private int countTrees(final int stepsSideways, final int stepsDown) {
+		resetCounters();
 		if (landscape.charAt(0) == tree) {
 			nrTrees += 1;
 		}
-		rowsSeen = 1;
 		IntStream.range(1, nrRows/stepsDown).forEach(
 	        n -> {
 	        	if ((positionInLandscape%(rowLength) + stepsSideways) > (rowLength-1)) {
@@ -68,10 +72,16 @@ public class PuzzleSolverDay3 {
 	        	if (landscape.charAt(positionInLandscape) == tree) {
 	    			nrTrees += 1;
 	    		}
-	        	rowsSeen += 1;
 	        }
 	    );
-		System.out.println(rowsSeen);
+		
+		return nrTrees;
+	}
+	
+	/** Resets the counters */
+	private void resetCounters() {
+		positionInLandscape = 0;
+		nrTrees = 0;
 	}
 	
 }
