@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ public class PuzzleSolverDay5 {
 	
 	List<String> seats = new ArrayList<>();
 	Map<String, List<String>> seatComponents = new HashMap<>();
+	List<Integer> seatIDs = new ArrayList<>();
 	
 	public static void main(String[] args) {
 		PuzzleSolverDay5 solution = new PuzzleSolverDay5();
@@ -23,11 +25,10 @@ public class PuzzleSolverDay5 {
 	/** Solves the puzzle */
 	private void solvePuzzle() {
 		parseInput();
-		breakSeatsIntoComponents();
-		final int maxSeatID = getHighestSeatID();
+		getAllSeatIDs();
+		System.out.println("My seat number: " + getMissingSeatID());
 		System.out.println("Total number of seats: " + seats.size());
-		
-		System.out.println("Highest seat ID: " + maxSeatID);
+		System.out.println("Highest seat ID: " + Collections.max(seatIDs));
 	}
 	
 	/** Parses input */
@@ -44,60 +45,38 @@ public class PuzzleSolverDay5 {
 	    }
 	}
 	
-	/** 
-	 * Breaks a seat into the first seven characters (row) and last three (column) 
-	 * and puts them in a map, with all seat in the same row in the same key
-	 */
-	private void breakSeatsIntoComponents() {
-		for (String seat : seats) {
-			String row = seat.substring(0, 7);
-			String column = seat.substring(7, 10);
-			if (seatComponents.containsKey(row)) {
-				List<String> columns = seatComponents.get(row);
-				columns.add(column);
-			} else {
-				List<String> columns = new ArrayList<>();
-				columns.add(column);
-				seatComponents.put(row,columns);
-			}
-			
-		}
-	}
-	
 	/**
-	 * Find the highest seat ID
+	 * Find getAllSeatIDs
 	 */
-	private int getHighestSeatID() {
-		int maxRowID = 0;
-		int maxID = 0;
-		for (Map.Entry<String,List<String>> entry : seatComponents.entrySet()) {
-			final int rowID = getNr(entry.getKey(), 127, 'F', 'B');
-			if (rowID > maxRowID) {
-				maxRowID = rowID;
-				int maxColID = 0;
-				for (String col : entry.getValue()) {
-					final int colID = getNr(col, 7, 'L', 'R');
-					if (colID > maxColID) {
-						maxColID = colID;
-					}
-				}
-				maxID = maxRowID * 8 + maxColID;
-			};
+	private void getAllSeatIDs() {
+		for (String seat : seats) {
+			seatIDs.add(getNr(seat.substring(0, 7), 127, 'F') * 8 + getNr(seat.substring(7, 10), 7, 'L'));
 		}
-		return maxID;
 	}
 	
 	/** Determines the number of a String */
-	private int getNr(final String aString, final int maxNr, final char lowerHalf, final char upperHalf) {
+	private int getNr(final String aString, final int maxNr, final char lowerHalf) {
 		List<Integer> currentIDs = IntStream.rangeClosed(0, maxNr).boxed().collect(Collectors.toList());
 		for(char c : aString.toCharArray()) {
 		    if (c == lowerHalf) {
 		    	currentIDs = currentIDs.subList(0,  currentIDs.size()/2);
-		    }
-		    if (c == upperHalf) {
+		    } else {
 		    	currentIDs = currentIDs.subList(currentIDs.size()/2,  currentIDs.size());
 		    }
 		}
 		return currentIDs.get(0);
+	}
+	
+	/** Gets the missing seat ID */
+	private int getMissingSeatID() {
+		Collections.sort(seatIDs);
+		int previousSeatID = Collections.min(seatIDs);
+		for (int seatID : seatIDs) {
+			if (seatID > previousSeatID + 1) {
+				return seatID - 1;
+			}
+			previousSeatID = seatID;
+		}
+		return 0;
 	}
 }
