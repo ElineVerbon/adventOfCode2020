@@ -24,6 +24,7 @@ public class PuzzleSolverDay7 {
 		parseInput();
 		convertInputToMap();
 		findABag("shinygold");
+		countBagInsideBag("shinygold");
 	}
 	
 	/** Converts to input to a list of integers */
@@ -46,16 +47,13 @@ public class PuzzleSolverDay7 {
 	 */
 	private void convertInputToMap() {
 		for (String line : input) {
-			if (line.contains("no other bag")) {
-				continue;
-			}
-			final List<String> containedBags = new ArrayList<>();
 			final String[] words = line.split(" ");
 			final String key = words[0] + words[1];
 			if (line.contains("no other bag")) {
-				rules.put(key,  containedBags);
+				rules.put(key,  new ArrayList<>());
 				continue;
 			}
+			final List<String> containedBags = new ArrayList<>();
 			final int nBagsContained = (int) line.chars().filter(ch -> ch == ',').count() + 1;
 			IntStream.range(0, nBagsContained).forEach(
 				n -> {
@@ -84,7 +82,7 @@ public class PuzzleSolverDay7 {
 			findBagTypes(bagsToBeSearched.get(0));
 		}
 		
-		System.out.println(bagsFound.size());
+		System.out.println("Nr bags that can contain a " + bagType + " bag: " + bagsFound.size());
 	}
 	
 	private void findBagTypes(final String bagType) {
@@ -97,5 +95,29 @@ public class PuzzleSolverDay7 {
 			}
 		}
 		bagsToBeSearched.remove(bagType);
+	}
+	
+	List<String> bagsWithinToBeSearched = new ArrayList<>();
+	List<String> bagsWithinFound = new ArrayList<>();
+	int nBagsWithin = 0;
+	
+	private void countBagInsideBag(final String bagType) {
+		findBagsWithin(bagType);
+		
+		//search for bags containing the bag types found until no more
+		while(bagsWithinToBeSearched.size() > 0 ) {
+			findBagsWithin(bagsWithinToBeSearched.get(0));
+		}
+		
+		System.out.println("Nr bags within a " + bagType + " bag: " + nBagsWithin);
+	}
+	
+	private void findBagsWithin(final String bagType) {
+		List<String> bagsWithin = rules.get(bagType);
+		nBagsWithin += bagsWithin.size();
+		for (String bag : bagsWithin) {
+			bagsWithinToBeSearched.add(bag);
+		}
+		bagsWithinToBeSearched.remove(bagType);
 	}
 }
