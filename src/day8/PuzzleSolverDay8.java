@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 public class PuzzleSolverDay8 {
 
 	List<String> input = new ArrayList<>();
+	int accValue;
 	
 	public static void main(String[] args) {
 		PuzzleSolverDay8 solution = new PuzzleSolverDay8();
@@ -22,11 +23,12 @@ public class PuzzleSolverDay8 {
 	
 	/** Solves the puzzle */
 	private void solvePuzzle() {
+		System.out.println("Correct answer problem 1: 1709, correct answer problem 2: 1976");
 		parseInput();
-		System.out.println("Acc value when executing command a second time: " + executeLoopingInput());
-		System.out.println(Integer.parseInt("-5"));
+		execute();
+		System.out.println("1. Acc value when for the first time executing a command a second time: " + accValue);
 		fixCode();
-		System.out.println(accValue);
+		System.out.println("2. Acc value of correct code: " + accValue);
 	}
 	
 	/** Converts to input to a list of integers */
@@ -46,48 +48,41 @@ public class PuzzleSolverDay8 {
 	/** 
 	 * Executes the input and keeps track of lines executed already
 	 */
-	private int executeLoopingInput() {
+	private boolean execute() {
 		List<Integer> linesRead = new ArrayList<>();
-		int accValue = 0;
+		accValue = 0;
 		int lineToCheck = 0;
 		
 		while(true) {
 			if (linesRead.contains(lineToCheck)) {
-				return accValue;
+				return false;
+			}
+			if (lineToCheck > input.size() - 1) {
+				return true;
 			}
 			linesRead.add(lineToCheck);
 			switch(input.get(lineToCheck).charAt(0)) {
 				case 'a':
-					accValue = changeParameter(input.get(lineToCheck).substring(4), accValue);
+					accValue += Integer.parseInt(input.get(lineToCheck).substring(4));
 					lineToCheck += 1;
 					break;
 				case 'n':
 					lineToCheck += 1;
 					break;
 				case 'j':
-					lineToCheck = changeParameter(input.get(lineToCheck).substring(4), lineToCheck);
+					lineToCheck += Integer.parseInt(input.get(lineToCheck).substring(4));
 					break;
 			}
 		}
 	}
-
-		
-	private int changeParameter(final String line, final int parameter) {
-		char operator = line.charAt(0);
-		if (operator == '-') {
-			return parameter - Integer.parseInt(line.substring(1));
-		} else {
-			return parameter + Integer.parseInt(line.substring(1));
-		}
-	}
 	
-	
+	/** Fix the code */
 	private void fixCode() {
 		while(true) {
 			List<Integer> range = IntStream.range(0, input.size()-1).boxed().collect(Collectors.toList());
 			for (int n : range) {
 				if (input.get(n).charAt(0) == 'j' || input.get(n).charAt(0) == 'n') {
-					if(changeInput(n)) {
+					if(changeInputAndCheckForLooping(n)) {
 						return;
 					}
 				}
@@ -96,51 +91,18 @@ public class PuzzleSolverDay8 {
 	}
 	
 	
-	private boolean changeInput(final int lineNumber) {
+	private boolean changeInputAndCheckForLooping(final int lineNumber) {
 		final String currentLine = input.get(lineNumber);
 		if (currentLine.substring(0, 3).equals("jmp")) {
 			input.set(lineNumber, "nop" + currentLine.substring(3));
 		} else {
 			input.set(lineNumber, "jmp" + currentLine.substring(3));
 		}
-		if (!checkForLoopingSolved()) {
+		if (!execute()) {
 			input.set(lineNumber, currentLine);
 			return false;
 		}
 		return true;
-	}
-	
-	int accValue;
-	
-	/** 
-	 * Executes the input and keeps track of lines executed already
-	 */
-	private boolean checkForLoopingSolved() {
-		accValue = 0;
-		List<Integer> linesRead = new ArrayList<>();
-		int lineToCheck = 0;
-		
-		while(true) {
-			if (linesRead.contains(lineToCheck)) {
-				return false;
-			}
-			linesRead.add(lineToCheck);
-			if (lineToCheck > input.size() - 1) {
-				return true;
-			}
-			switch(input.get(lineToCheck).charAt(0)) {
-				case 'a':
-					accValue = changeParameter(input.get(lineToCheck).substring(4), accValue);
-					lineToCheck += 1;
-					break;
-				case 'n':
-					lineToCheck += 1;
-					break;
-				case 'j':
-					lineToCheck = changeParameter(input.get(lineToCheck).substring(4), lineToCheck);
-					break;
-			}
-		}
 	}
 	
 }
