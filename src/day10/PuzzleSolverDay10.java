@@ -21,14 +21,15 @@ public class PuzzleSolverDay10 {
 	
 	/** Solves the puzzle */
 	private void solvePuzzle() {
-		SortedSet<Integer> input = parseInput();
+		List<Integer> input = parseInput();
 		System.out.println("Number of adapters: " + input.size());
-		System.out.println("Solution problem 1: " + solvePuzzle(input));
+		System.out.println("Solution problem 1: " + solveProblem1(input));
+		solveProblem2(input);
 	}
 	
 	/** Converts to input to a list of integers */
-	private SortedSet<Integer> parseInput() {
-		SortedSet<Integer> input = new TreeSet<>();
+	private List<Integer> parseInput() {
+		List<Integer> input = new ArrayList<>();
 		try {
 	    	BufferedReader br = new BufferedReader(new FileReader(System.getProperty("user.dir") + "/src/day10/input.txt"));
 	        String line;
@@ -39,10 +40,13 @@ public class PuzzleSolverDay10 {
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	    }
+		
+		Collections.sort(input);
 	    return input;
 	}
 
-	private int solvePuzzle(final SortedSet<Integer> adapterList) {
+	
+	private int solveProblem1(final List<Integer> adapterList) {
 		int nr3s = 0;
 		int nr1s = 0;
 		int previousAdapter = 0;
@@ -58,4 +62,50 @@ public class PuzzleSolverDay10 {
         } 
 		return nr1s * (nr3s + 1);
 	}
+	
+	private void solveProblem2(final List<Integer> adapterList) {
+		List<Integer> solution = new ArrayList<>();
+		solution.add(0);
+		solve(adapterList, solution);
+		System.out.println(nSolutions);
+	}
+	
+	Long nSolutions = (long) 0;
+	
+	private void solve(final List<Integer> adapterList, final List<Integer> solution) {
+		final int lastAdapter = adapterList.get(adapterList.size()-1);
+		while (solution.get(solution.size()-1) != lastAdapter) {
+			final int lastAddedNumber = solution.get(solution.size()-1);
+			if (adapterList.contains(lastAddedNumber+1)) {
+				solution.add(lastAddedNumber+1);
+				if(lastAddedNumber+1 == lastAdapter) {
+					nSolutions++;
+					break;
+				} else {
+					solve(adapterList, solution);
+				}
+			}
+			if (adapterList.contains(lastAddedNumber+2)) {
+				solution.add(lastAddedNumber+2);
+				if(lastAddedNumber+2 == lastAdapter) {
+					nSolutions++;
+					break;
+				} else {
+					solve(adapterList, solution);
+				}
+			}
+			if (adapterList.contains(lastAddedNumber+3)) {
+				solution.add(lastAddedNumber+3);
+				if(lastAddedNumber+3 == lastAdapter) {
+					nSolutions++;
+					break;
+				} else {
+					solve(adapterList, solution);
+				}
+			}
+		}
+		System.out.println(nSolutions);
+		return;
+	}
+	
 }
