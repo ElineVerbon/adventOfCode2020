@@ -7,10 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class PuzzleSolverDay10 {
 
@@ -22,9 +18,8 @@ public class PuzzleSolverDay10 {
 	/** Solves the puzzle */
 	private void solvePuzzle() {
 		List<Integer> input = parseInput();
-		System.out.println("Number of adapters: " + input.size());
-		System.out.println("Solution problem 1: " + solveProblem1(input));
-		solveProblem2(input);
+		List<List<Integer>> listInParts = solveProblem1AndBreakListIntoListsForProblem2(input);
+		solveProblem2(listInParts);
 	}
 	
 	/** Converts to input to a list of integers */
@@ -45,8 +40,16 @@ public class PuzzleSolverDay10 {
 	    return input;
 	}
 
-	
-	private int solveProblem1(final List<Integer> adapterList) {
+	/**
+	 * Counts the number of steps of 1 and 3 when using all adapters.
+	 * Breaks the chain of all adapters in smaller chains that are connected via ONLY a 3-point gap
+	 * @param adapterList
+	 * @return
+	 */
+	private List<List<Integer>> solveProblem1AndBreakListIntoListsForProblem2(final List<Integer> adapterList) {
+		List<List<Integer>> adapterListInParts = new ArrayList<>();
+		List<Integer> currentList = new ArrayList<>();
+		currentList.add(0);
 		int nr3s = 0;
 		int nr1s = 0;
 		int previousAdapter = 0;
@@ -57,17 +60,34 @@ public class PuzzleSolverDay10 {
             	nr1s++;
             } else if(thisAdapter - 3 == previousAdapter) {
             	nr3s++;
+            	adapterListInParts.add(currentList);
+            	currentList = new ArrayList<>();
             }
+            currentList.add(thisAdapter);
             previousAdapter = thisAdapter;
         } 
-		return nr1s * (nr3s + 1);
+        adapterListInParts.add(currentList);
+        System.out.println("Solution problem 1: " + nr1s * (nr3s + 1));
+		return adapterListInParts;
 	}
 	
-	private void solveProblem2(final List<Integer> adapterList) {
-		List<Integer> solution = new ArrayList<>();
-		solution.add(0);
-		solve(adapterList, solution);
-		System.out.println(nSolutions);
+	private void solveProblem2(final List<List<Integer>> adapterListInParts) {
+		List<Long> optionsPerPart = new ArrayList<>();
+		
+		for(List<Integer> partOfList : adapterListInParts) {
+			if (partOfList.size() == 1) {
+				continue;
+			}
+			List<Integer> solution = new ArrayList<>();
+			solution.add(partOfList.get(0));
+			
+			solve(partOfList, solution);
+			optionsPerPart.add(nSolutions);
+			nSolutions = (long) 0;
+		}
+		
+		System.out.println(optionsPerPart.stream().reduce((long) 1, (a, b) -> a * b));
+		
 	}
 	
 	Long nSolutions = (long) 0;
@@ -104,7 +124,6 @@ public class PuzzleSolverDay10 {
 				}
 			}
 		}
-		System.out.println(nSolutions);
 		return;
 	}
 	
