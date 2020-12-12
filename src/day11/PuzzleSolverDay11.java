@@ -22,11 +22,17 @@ public class PuzzleSolverDay11 {
 	 * @throws IOException */
 	private void solvePuzzle() throws IOException {
 		//parse input
-		Path path = Paths.get(System.getProperty("user.dir") + "/src/day11/testInput.txt");
+		Path path = Paths.get(System.getProperty("user.dir") + "/src/day11/input.txt");
 		String grid = getInput(path);
 		int lineLength = getLineLength(path);
-		System.out.println("Number of rows: " + (grid.length() / lineLength));
-		fillSeats(lineLength, grid);
+		while (true) {
+			String newGrid = fillSeats(lineLength, grid);
+			if (newGrid.equals(grid)) {
+				break;
+			} 
+			grid = newGrid;
+		}
+		System.out.println("\n\nNumber occupied seats: " + grid.chars().filter(ch -> ch == '#').count());
 	}
 	
 	private String getInput(final Path path) throws IOException {
@@ -41,7 +47,7 @@ public class PuzzleSolverDay11 {
 	    }
 	}
 	
-	private void fillSeats(final int lineLength, final String grid) {
+	private String fillSeats(final int lineLength, final String grid) {
 		List<Character> locations = new ArrayList<>();
 		List<Integer> range = IntStream.range(0, grid.length()).boxed().collect(Collectors.toList());
 		for (int n : range) {
@@ -51,30 +57,29 @@ public class PuzzleSolverDay11 {
 		char empty = 'L';
 		char filled = '#';
 		for (int n : range) {
+			if (n==1) {
+				System.out.println("hi");
+			}
 			if (grid.charAt(n) != floor) {
 				List<Integer> surroundingPositions = getSurroundingPositions(grid, n, lineLength);
 				int nSurroundingOccupiedSeats = countOccupied(grid, surroundingPositions);
 				if (grid.charAt(n) == empty && nSurroundingOccupiedSeats == 0) {
-					locations.set(n, '#');
+					locations.set(n, filled);
 				} else if (grid.charAt(n) == filled && nSurroundingOccupiedSeats >= 4) {
-					locations.set(n, 'L');
+					locations.set(n, empty);
 				}
 			}
 		}
+		
+		System.out.println("\n\nCurrent board: ");
 		for (int n : range) {
-			if (n % lineLength == 0) {
+			if (n % lineLength == 0 && n != 0) {
 				System.out.println();
 			}
 			System.out.print(locations.get(n));
 		}
-//		return 0;
+		return locations.stream().map(String::valueOf).collect(Collectors.joining());
 	}
-	
-//	private void countSurroundingEmptySeats(final String grid, final int currentPosition) {
-//		for (int x : surroundingPositions(grid, currentPosition)) {
-//			
-//		}
-//	}
 	
 	private List<Integer> getSurroundingPositions(final String grid, final int currentPosition, final int lineLength) {
 		List<Integer> surroundingPositions = new ArrayList<>();
@@ -88,7 +93,7 @@ public class PuzzleSolverDay11 {
 			surroundingPositions.addAll(positionsToTheLeft(currentPosition, lineLength));
 		}
 		surroundingPositions.addAll(positionsAboveBelow(currentPosition, lineLength));
-		surroundingPositions = surroundingPositions.stream().filter(position -> position > 0 && position < grid.length()).collect(Collectors.toList());;
+		surroundingPositions = surroundingPositions.stream().filter(position -> position >= 0 && position < grid.length()).collect(Collectors.toList());;
 		return surroundingPositions;
 	}
 	
