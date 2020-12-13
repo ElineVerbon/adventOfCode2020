@@ -24,9 +24,8 @@ public class PuzzleSolverDay11problem2 {
 		//parse input
 		Path path = Paths.get(System.getProperty("user.dir") + "/src/day11/input.txt");
 		List<String> grid = getInput(path);
-		int lineLength = getLineLength(path);
 		while (true) {
-			List<String>  newGrid = fillSeats(lineLength, grid);
+			List<String>  newGrid = fillSeats(grid);
 			if (newGrid.equals(grid)) {
 				break;
 			} 
@@ -41,23 +40,22 @@ public class PuzzleSolverDay11problem2 {
 	    }
 	}
 	
-	private int getLineLength(final Path path) throws IOException {
-		try (Stream<String> lines = Files.lines(path)) {
-			return lines.findFirst().get().length();
-	    }
+	private List<String>  fillSeats(final List<String>  grid) {
+		List<List<List<Character>>> gridAsTwoLists = saveGridAsLists(grid);
+		List<List<Character>> newLocations = modelSeatingUntilStabilized(gridAsTwoLists.get(0), gridAsTwoLists.get(1));
+		return printAndReturnResult(newLocations);
 	}
 	
-	private List<String>  fillSeats(final int lineLength, final List<String>  grid) {
+	private List<List<List<Character>>> saveGridAsLists(final List<String> grid) {
 		List<List<Character>> currentLocations = new ArrayList<>();
 		List<List<Character>> newLocations = new ArrayList<>();
-		
-		//go through each line
+
 		List<Integer> lineRange = IntStream.range(0, grid.size()).boxed().collect(Collectors.toList());
 		List<Integer> charRange = IntStream.range(0, grid.get(0).length()).boxed().collect(Collectors.toList());
+		
 		for (int n : lineRange) {
 			List<Character> currentChars = new ArrayList<>();
 			List<Character> newChars = new ArrayList<>();
-			//go through each char in a line
 			String line = grid.get(n);
 			for (int c : charRange) {
 				currentChars.add(line.charAt(c));
@@ -67,15 +65,22 @@ public class PuzzleSolverDay11problem2 {
 			newLocations.add(newChars);
 			
 		}
+		List<List<List<Character>>> gridAsTwoLists = new ArrayList<>();
+		gridAsTwoLists.add(currentLocations);
+		gridAsTwoLists.add(newLocations);
+		return gridAsTwoLists;
+	}
+	
+	private List<List<Character>> modelSeatingUntilStabilized(final List<List<Character>> currentLocations, final List<List<Character>> newLocations) {
 		char floor = '.';
 		char empty = 'L';
 		char filled = '#';
+		List<Integer> lineRange = IntStream.range(0, currentLocations.size()).boxed().collect(Collectors.toList());
+		List<Integer> charRange = IntStream.range(0, currentLocations.get(0).size()).boxed().collect(Collectors.toList());
+		
 		for (int n : lineRange) {
 			List<Character> thisLine = currentLocations.get(n);
 			for (int c : charRange) {
-				if (n == 1 && c == 0) {
-					System.out.println("");
-				}
 				if (thisLine.get(c) != floor) {
 					List<List<Integer>> surroundingSeats = getSurroundingSeats(currentLocations, n, c);
 					int nSurroundingOccupiedSeats = countOccupied(currentLocations, surroundingSeats);
@@ -87,11 +92,18 @@ public class PuzzleSolverDay11problem2 {
 				}
 			}
 		}
-		
+		return newLocations;
+	}
+	
+	private List<String> printAndReturnResult(final List<List<Character>> newLocations) {
 		List<String> result = new ArrayList<>();
+		List<Integer> lineRange = IntStream.range(0, newLocations.size()).boxed().collect(Collectors.toList());
+		List<Integer> charRange = IntStream.range(0, newLocations.get(0).size()).boxed().collect(Collectors.toList());
 		System.out.println("\n\nCurrent board: ");
 		for (int n : lineRange) {
+			//add line to results
 			result.add(newLocations.get(n).stream().map(String::valueOf).collect(Collectors.joining()));
+			//print the line on a new line
 			System.out.println();
 			for (int c : charRange) {
 				System.out.print(newLocations.get(n).get(c));
@@ -102,112 +114,48 @@ public class PuzzleSolverDay11problem2 {
 	
 	private List<List<Integer>> getSurroundingSeats(final List<List<Character>> locations, final int lineNumber, final int charNumber) {
 		List<List<Integer>> surroundingSeats = new ArrayList<>();
-		List<Character> currentLine;
-		List<Integer> seat;
-		
 		
 		//get first seat to left above, if any
-		int currentIndex = charNumber - 1;
-		int currentLineNumber = lineNumber - 1;
-		while(currentIndex >= 0 && currentLineNumber >= 0) {
-			currentLine = locations.get(currentLineNumber);
-			if (currentLine.get(currentIndex) != '.') {
-				seat = Arrays.asList(new Integer[] { currentLineNumber, currentIndex });
-				surroundingSeats.add(seat);
-				break;
-			}
-			currentIndex--;
-			currentLineNumber--;
-		}
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, -1, -1);
 		
 		//get first seat to the left, if any
-		currentLine = locations.get(lineNumber);
-		currentIndex = charNumber - 1;
-		while(currentIndex >= 0) {
-			if (currentLine.get(currentIndex) != '.') {
-				seat = Arrays.asList(new Integer[] { lineNumber, currentIndex });
-				surroundingSeats.add(seat);
-				break;
-			}
-			currentIndex--;
-		}
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, -1, 0);
 		
 		//get first seat to left below, if any
-		currentIndex = charNumber - 1;
-		currentLineNumber = lineNumber + 1;
-		while(currentIndex >= 0 && currentLineNumber < locations.size()) {
-			currentLine = locations.get(currentLineNumber);
-			if (currentLine.get(currentIndex) != '.') {
-				seat = Arrays.asList(new Integer[] { currentLineNumber, currentIndex });
-				surroundingSeats.add(seat);
-				break;
-			}
-			currentIndex--;
-			currentLineNumber++;
-		}
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, -1, +1);
 		
 		//get first seat above, if any
-		currentLineNumber = lineNumber - 1;
-		while(currentLineNumber >= 0 ) {
-			if (locations.get(currentLineNumber).get(charNumber) != '.') {
-				seat = Arrays.asList(new Integer[] { currentLineNumber, charNumber });
-				surroundingSeats.add(seat);
-				break;
-			}
-			currentLineNumber--;
-		}
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, 0, -1);
 		
 		//get first seat below, if any
-		currentLineNumber = lineNumber + 1;
-		while(currentLineNumber < locations.size()) {
-			if (locations.get(currentLineNumber).get(charNumber) != '.') {
-				seat = Arrays.asList(new Integer[] { currentLineNumber, charNumber });
-				surroundingSeats.add(seat);
-				break;
-			}
-			currentLineNumber++;
-		}
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, 0, +1);
 		
 		//get first seat to right above, if any
-		currentIndex = charNumber + 1;
-		currentLineNumber = lineNumber - 1;
-		while(currentIndex < currentLine.size() && currentLineNumber >= 0) {
-			currentLine = locations.get(currentLineNumber);
-			if (currentLine.get(currentIndex) != '.') {
-				seat = Arrays.asList(new Integer[] { currentLineNumber, currentIndex });
-				surroundingSeats.add(seat);
-				break;
-			}
-			currentIndex++;
-			currentLineNumber--;
-		}
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, +1, -1);
 		
 		//get first seat to the right, if any
-		currentLine = locations.get(lineNumber);
-		currentIndex = charNumber + 1;
-		while(currentIndex < currentLine.size()) {
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, +1, 0);
+		
+		//get first seat to right below, if any
+		surroundingSeats = getASurroundingSeat(surroundingSeats, locations, lineNumber, charNumber, +1, +1);
+		
+		return surroundingSeats;
+	}
+	
+	private List<List<Integer>> getASurroundingSeat(final List<List<Integer>> surroundingSeats, final List<List<Character>> locations, final int lineNumber, final int charNumber
+			, final int changeInIndex, final int changeInLineNumber) {
+		int currentIndex = charNumber + changeInIndex;
+		int currentLineNumber = lineNumber + changeInLineNumber;
+		while(currentIndex >= 0 && currentIndex < locations.get(0).size() && currentLineNumber >= 0 && currentLineNumber < locations.size()) {
+			List<Character> currentLine = locations.get(currentLineNumber);
 			if (currentLine.get(currentIndex) != '.') {
-				seat = Arrays.asList(new Integer[] { lineNumber, currentIndex });
+				List<Integer> seat = Arrays.asList(new Integer[] { currentLineNumber, currentIndex });
 				surroundingSeats.add(seat);
 				break;
 			}
-			currentIndex++;
+			currentIndex += changeInIndex;
+			currentLineNumber += changeInLineNumber;
 		}
-		
-		//get first seat to right below, if any
-		currentIndex = charNumber + 1;
-		currentLineNumber = lineNumber + 1;
-		while(currentIndex < currentLine.size() && currentLineNumber < locations.size()) {
-			currentLine = locations.get(currentLineNumber);
-			if (currentLine.get(currentIndex) != '.') {
-				seat = Arrays.asList(new Integer[] { currentLineNumber, currentIndex });
-				surroundingSeats.add(seat);
-				break;
-			} 
-			currentIndex++;
-			currentLineNumber++;
-		}
-		
 		return surroundingSeats;
 	}
 	
